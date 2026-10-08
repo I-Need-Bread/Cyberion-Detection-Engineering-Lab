@@ -1,0 +1,55 @@
+title: Suspicious PowerShell Execution
+id: 3f7c3e60-2b8a-4e3f-9a1d-000000000001
+status: experimental
+description: Detects suspicious PowerShell invocation patterns commonly used by
+    attackers - encoded commands, execution policy bypass, hidden windows,
+    download cradles, and in-memory execution.
+references:
+    - https://attack.mitre.org/techniques/T1059/001/
+    - https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES
+author: Cyberion Detection Engineering Lab
+date: 2026-10-08
+tags:
+    - attack.execution
+    - attack.t1059.001
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_img:
+        - Image|endswith: '\powershell.exe'
+        - OriginalFileName: 'PowerShell.EXE'
+    selection_flags:
+        CommandLine|contains:
+            - ' -enc '
+            - ' -EncodedCommand '
+            - ' -ec '
+            - ' -nop '
+            - ' -NoProfile '
+            - ' -w hidden '
+            - ' -WindowStyle Hidden '
+            - ' -ep bypass '
+            - ' -ExecutionPolicy Bypass '
+    selection_loader:
+        CommandLine|contains:
+            - 'IEX'
+            - 'Invoke-Expression'
+            - 'DownloadString'
+            - 'DownloadFile'
+            - 'FromBase64String'
+            - 'Invoke-WebRequest'
+            - 'Net.WebClient'
+            - 'Start-BitsTransfer'
+    selection_remote:
+        CommandLine|contains:
+            - 'http://'
+            - 'https://'
+    condition: selection_img and (selection_flags or selection_loader or selection_remote)
+fields:
+    - CommandLine
+    - ParentImage
+    - User
+falsepositives:
+    - Legitimate admin scripts using -ExecutionPolicy Bypass
+    - Software deployment tools (SCCM, Intune) invoking PowerShell downloads
+level: high
