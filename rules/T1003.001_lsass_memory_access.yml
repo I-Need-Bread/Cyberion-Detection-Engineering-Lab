@@ -1,0 +1,55 @@
+title: Suspicious LSASS Process Access for Credential Dumping
+id: 3f7c3e60-2b8a-4e3f-9a1d-000000000003
+status: experimental
+description: Detects processes opening handles to lsass.exe with access masks commonly used by credential dumping tools such as Mimikatz, ProcDump, and comsvcs.dll MiniDump. GrantedAccess values are matched both in zero-padded Sysmon form (0x001fffff) and canonical form (0x1fffff).
+references:
+  - https://attack.mitre.org/techniques/T1003/001/
+  - https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES
+  - https://learn.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights
+author: Cyberion Detection Engineering Lab
+date: 2026-10-09
+tags:
+  - attack.credential-access
+  - attack.t1003.001
+logsource:
+  category: process_access
+  product: windows
+detection:
+  selection_target:
+    TargetImage|endswith: '\lsass.exe'
+  selection_access:
+    GrantedAccess|contains:
+      - '0x1010'
+      - '0x1410'
+      - '0x1438'
+      - '0x143a'
+      - '0x1439'
+      - '0x1f1fff'
+      - '0x1014c0'
+      - '0x12367b'
+      - '0x1452'
+      - '0x1fffff'
+  filter_known_sources:
+    SourceImage|endswith:
+      - '\MsMpEng.exe'
+      - '\csrss.exe'
+      - '\lsass.exe'
+      - '\wininit.exe'
+      - '\services.exe'
+      - '\svchost.exe'
+      - '\taskmgr.exe'
+      - '\opera_autoupdate.exe'
+      - '\dllhost.exe'
+      - '\conhost.exe'
+      - '\winlogon.exe'
+  condition: selection_target and selection_access and not filter_known_sources
+fields:
+  - SourceImage
+  - TargetImage
+  - GrantedAccess
+  - CallTrace
+falsepositives:
+  - Legitimate AV/EDR agents accessing LSASS for scanning
+  - Windows Defender credential guard operations
+  - Software inventory or monitoring tools
+level: critical
