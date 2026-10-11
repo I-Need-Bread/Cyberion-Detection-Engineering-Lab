@@ -1,0 +1,127 @@
+title: RDP Lateral Movement - RemoteInteractive Logon (RDP)
+id: 8b3a5c2e-4f1d-4a9b-9c7e-2d8f6a4b1e33
+status: experimental
+description: |
+  Detects successful RemoteInteractive (RDP) logons via Windows Security
+  Event ID 4624, LogonType 10. Covers two cases:
+    (1) Standard RDP lateral movement from a remote host
+    (2) RDP-tunnel abuse — loopback (127.0.0.1 / ::1) source IP is the
+        signature of port-forwarding tools (chisel, socat, plink, stunnel)
+        used to expose RDP on a compromised host.
+
+  Machine accounts (ending in $) and well-known service accounts are
+  excluded to reduce noise.
+
+references:
+  - https://attack.mitre.org/techniques/T1021/001/
+  - https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624
+  - https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventID=4624
+
+author: Cyberion Detection Engineering Lab
+date: 2026/10/09
+
+tags:
+  - attack.lateral_movement
+  - attack.t1021.001
+  - attack.command_and_control
+  - attack.t1572              # Protocol Tunneling
+
+logsource:
+  product: windows
+  service: security
+
+detection:
+  selection_event:
+    EventID: 4624
+
+  selection_logon_type:
+    LogonType: '10'           # RemoteInteractive = RDP
+
+  # High-signal sub-pattern: RDP from loopback indicates RDP tunneling
+  selection_loopback_ip:
+    IpAddress:
+      - '127.0.0.1'
+      - '::1'
+
+  filter_machine_accounts:
+    TargetUserName|endswith: '$'
+
+  filter_system_accounts:
+    TargetUserName:
+      - 'SYSTEM'
+      - 'LOCAL SERVICE'
+      - 'NETWORK SERVICE'
+      - 'ANONYMOUS LOGON'
+      - 'DWM-1'
+      - 'DWM-2'
+      - 'UMFD-0'
+      - 'UMFD-1'
+
+  condition: selection_event and selection_logon_type
+             and not filter_machine_accounts
+             and not filter_system_accounts
+
+fields:
+  - TargetUserName
+  - TargetDomainName
+  - IpAddress
+  - IpPort
+  - WorkstationName
+  - LogonType
+  - AuthenticationPackageName
+  - LogonProcessName
+  - SubjectUserName
+
+falsepositives:
+  - Legitimate administrators using RDP to manage servers (log from real
+    remote IPs, not loopback)
+  - Help desk / jump-host administrative access
+  - RDP loopback for testing or automation on development machines
+  - Management software that RDPs to localhost for health checks
+
+level: medium
+
+# Optional companion rule (higher severity): scope specifically to tunnel
+# abuse when loopback + LogonType 10 are combined.
+---
+title: RDP Tunneling - Loopback RDP Logon (High Confidence)
+id: a1f4d5c9-3e28-4b16-8c72-9a4e6d5f7c88
+status: experimental
+description: |
+  Detects RDP logons whose source IP is 127.0.0.1 or ::1. Legitimate users
+  do not RDP to localhost. This pattern is the classic signature of RDP
+  exposed through a local port-forward (chisel, socat, plink, stunnel,
+  Meterpreter portfwd) used for command-and-control or lateral movement.
+references:
+  - https://attack.mitre.org/techniques/T1021/001/
+  - https://attack.mitre.org/techniques/T1572/
+author: Cyberion Detection Engineering Lab
+date: 2026/10/09
+tags:
+  - attack.command_and_control
+  - attack.t1572
+  - attack.lateral_movement
+  - attack.t1021.001
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4624
+    LogonType: '10'
+    IpAddress:
+      - '127.0.0.1'
+      - '::1'
+  filter_machine_accounts:
+    TargetUserName|endswith: '$'
+  condition: selection and not filter_machine_accounts
+fields:
+  - TargetUserName
+  - TargetDomainName
+  - IpAddress
+  - IpPort
+  - WorkstationName
+  - AuthenticationPackageName
+falsepositives:
+  - Development / test RDP to localhost (rare in production)
+level: high
