@@ -1,0 +1,80 @@
+title: Process Hollowing - CreateRemoteThread with Unbacked Start Address
+id: c8f5b2e4-3d1a-4b29-9c7f-2e6a4d8b1f55
+status: experimental
+description: |
+  Detects a strong process-hollowing signal via Sysmon Event ID 8
+  (CreateRemoteThread): a source process creating a thread at a
+  low base address that is NOT backed by a loaded module
+  (StartModule is empty). This pattern matches the final stage of
+  process hollowing — resuming execution at the entry point of an
+  injected PE image — and complements Sysmon Event ID 25
+  (ProcessTampering) on hosts that do not yet generate it.
+
+references:
+  - https://attack.mitre.org/techniques/T1055/012/
+  - https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+
+author: Cyberion Detection Engineering Lab
+date: 2026/10/09
+
+tags:
+  - attack.defense_evasion
+  - attack.t1055.012
+
+logsource:
+  product: windows
+  service: sysmon
+  definition: 'Requires Sysmon Event ID 8 (CreateRemoteThread) logging'
+
+detection:
+  selection_event:
+    EventID: 8
+
+  # Empty StartModule = thread starting in unbacked memory
+  # (loader code, injected PE entry point, shellcode stub)
+  selection_no_module:
+    StartModule: ''
+
+  # Target is a process typically abused for hollowing
+  selection_target:
+    TargetImage|endswith:
+      - '\svchost.exe'
+      - '\notepad.exe'
+      - '\rundll32.exe'
+      - '\explorer.exe'
+      - '\dllhost.exe'
+      - '\RegAsm.exe'
+      - '\RegSvcs.exe'
+      - '\MSBuild.exe'
+
+  # Filter known legit Windows-internal thread creation
+  filter_known_sources:
+    SourceImage|endswith:
+      - '\svchost.exe'
+      - '\csrss.exe'
+      - '\smss.exe'
+      - '\wininit.exe'
+      - '\services.exe'
+      - '\lsass.exe'
+      - '\MsMpEng.exe'
+      - '\MpCmdRun.exe'
+      - '\Sysmon.exe'
+      - '\Sysmon64.exe'
+      - '\MsSense.exe'
+
+  condition: selection_event and selection_no_module and selection_target
+             and not filter_known_sources
+
+fields:
+  - SourceImage
+  - TargetImage
+  - StartAddress
+  - StartModule
+  - StartFunction
+  - NewThreadId
+
+falsepositives:
+  - Legitimate remote-thread debugging (allowlist by source)
+  - Some .NET scenarios without PDB symbol resolution
+
+level: high

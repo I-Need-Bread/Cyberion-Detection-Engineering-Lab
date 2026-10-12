@@ -1,0 +1,70 @@
+title: Process Hollowing - Sysmon ProcessTampering
+id: b7e4a1d3-2c9f-4a18-8b6e-1f5d3c7a9e22
+status: experimental
+description: |
+  Detects process hollowing / runPE / process replacement via Sysmon
+  Event ID 25 (ProcessTampering). Sysmon fires this event when a running
+  process's executable image is modified in memory — the core signature
+  of process hollowing and related defense-evasion techniques.
+
+  Unlike Sysmon Event ID 8 (CreateRemoteThread), which requires the
+  detecting host to observe the injection act itself, Event ID 25
+  reports the tampered process directly — a much higher-fidelity signal.
+
+references:
+  - https://attack.mitre.org/techniques/T1055/012/
+  - https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+  - https://github.com/SigmaHQ/sigma/blob/master/rules/windows/sysmon/sysmon_process_tampering.yml
+
+author: Cyberion Detection Engineering Lab
+date: 2026/10/09
+
+tags:
+  - attack.defense_evasion
+  - attack.privilege_escalation
+  - attack.t1055.012
+
+logsource:
+  product: windows
+  service: sysmon
+  definition: 'Requires Sysmon Event ID 25 (ProcessTampering) logging'
+
+detection:
+  selection_event:
+    EventID: 25
+
+  selection_type:
+    Type:
+      - 'Image is replaced'
+      - 'Image is locked for access'
+      - 'Image is hijacked'
+
+  filter_known_legit:
+    # Some legitimate scenarios trigger ProcessTampering but are benign
+    Image|endswith:
+      - '\MsMpEng.exe'         # Defender self-integrity
+      - '\MpCmdRun.exe'
+      - '\Sysmon.exe'
+      - '\Sysmon64.exe'
+      - '\MsSense.exe'
+      - '\SenseCncProxy.exe'
+      - '\MsSense.exe'
+    User|endswith:
+      - 'AUTHORITY\SYSTEM'
+
+  condition: selection_event and selection_type and not filter_known_legit
+
+fields:
+  - Image
+  - ProcessId
+  - User
+  - Type
+
+falsepositives:
+  - Application compatibility shims
+  - Just-in-time (JIT) debuggers
+  - Software protection / DRM engines
+  - Some AV/EDR self-protection mechanisms
+  - Managed runtime profiling
+
+level: critical
