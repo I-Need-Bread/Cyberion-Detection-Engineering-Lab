@@ -1,0 +1,127 @@
+title: Process Injection - Suspicious CreateRemoteThread
+id: 4c9e2b1f-8a6d-4e3c-9f2b-7d5a6c1e8b44
+status: experimental
+description: |
+  Detects suspicious cross-process thread creation (Sysmon Event ID 8,
+  CreateRemoteThread) indicative of process injection (T1055). Built from
+  observed ATT&CK evaluation telemetry and organized into three tiers:
+
+    Tier A — Injection into LSASS (credential theft, e.g. Mimikatz,
+             custom dumpers, Meterpreter migrate)
+    Tier B — Injection from an unusual source process into a host
+             process (Office macros → explorer, IIS webshell → notepad,
+             Python → svchost, phishing dropper → lsass, etc.)
+    Tier C — Injection using a well-known offensive primitive,
+             detected by module path or start function
+             (BootstrapDLL.dll, DbgUiRemoteBreakin, LoadManagedProject)
+
+  Known-good Windows-internal cross-process thread creation
+  (svchost, csrss, lsass, smss, wininit, services, Defender,
+  Sysmon, Defender for Endpoint) is excluded.
+
+references:
+  - https://attack.mitre.org/techniques/T1055/
+  - https://attack.mitre.org/techniques/T1055.002/
+  - https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+  - https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid=90008
+
+author: Cyberion Detection Engineering Lab
+date: 2026/10/09
+
+tags:
+  - attack.defense_evasion
+  - attack.privilege_escalation
+  - attack.t1055
+  - attack.t1055.002
+
+logsource:
+  product: windows
+  service: sysmon
+  definition: 'Requires Sysmon Event ID 8 (CreateRemoteThread) logging'
+
+detection:
+  selection_event:
+    EventID: 8
+
+  # ---- Tier A: injection into LSASS (highest confidence) ----
+  selection_target_lsass:
+    TargetImage|endswith: '\lsass.exe'
+
+  # ---- Tier B: unusual source process injecting into anything ----
+  selection_suspicious_source:
+    SourceImage|endswith:
+      # Office macros
+      - '\winword.exe'
+      - '\excel.exe'
+      - '\powerpnt.exe'
+      - '\outlook.exe'
+      # Web shells / server-side injection
+      - '\w3wp.exe'
+      # Scripting hosts injecting into other processes
+      - '\powershell.exe'
+      - '\pwsh.exe'
+      - '\wscript.exe'
+      - '\cscript.exe'
+      - '\mshta.exe'
+      # LOLBins
+      - '\rundll32.exe'
+      - '\regsvr32.exe'
+      # Common malicious-process names observed in the dataset
+      - '\m.exe'
+      - '\keefarce.exe'
+      - '\rdrleakdiag.exe'
+      - '.msg.exe'                # phishing dropper masquerading as a mail file
+
+  # ---- Tier C: known offensive primitives ----
+  selection_offensive_module:
+    StartModule|endswith:
+      - '\BootstrapDLL.dll'
+      - '\BootstrapDLL64.dll'
+
+  selection_offensive_function:
+    StartFunction:
+      - 'DbgUiRemoteBreakin'      # debugger-attach injection
+      - 'LoadManagedProject'      # managed-injection loader
+      - 'LoadLibraryW'            # remote LoadLibrary — unusual outside legit hosts
+
+  # ---- Exclusions: Windows-internal cross-process thread creators ----
+  filter_known_sources:
+    SourceImage|endswith:
+      - '\svchost.exe'
+      - '\csrss.exe'
+      - '\smss.exe'
+      - '\wininit.exe'
+      - '\services.exe'
+      - '\lsass.exe'
+      - '\winlogon.exe'
+      - '\MsMpEng.exe'
+      - '\MpCmdRun.exe'
+      - '\Sysmon.exe'
+      - '\Sysmon64.exe'
+      - '\MsSense.exe'
+      - '\SenseCncProxy.exe'
+
+  condition: selection_event
+             and ( selection_target_lsass
+                   or selection_suspicious_source
+                   or selection_offensive_module
+                   or selection_offensive_function )
+             and not filter_known_sources
+
+fields:
+  - SourceImage
+  - TargetImage
+  - NewThreadId
+  - StartAddress
+  - StartModule
+  - StartFunction
+  - SourceProcessId
+  - TargetProcessId
+
+falsepositives:
+  - Debuggers attaching (WinDbg, Visual Studio) — allowlist by Image or user
+  - Accessibility tools
+  - Legitimate Office automation (rare — Office injecting into explorer is abnormal)
+  - Management software performing health checks across processes
+
+level: high
