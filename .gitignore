@@ -1,7 +1,9 @@
 venv/
 __pycache__/
 *.pyc
-data/EVTX-ATTACK-SAMPLES/
 data/EVTX-ATTACK-SAMPLES-main/
 data/mordor/
 .ipynb_checkpoints/
+
+# NOTE: data/EVTX-ATTACK-SAMPLES/ is intentionally tracked.
+# The corpus is ~4.3 MB and required for CI-reproducible testing.
