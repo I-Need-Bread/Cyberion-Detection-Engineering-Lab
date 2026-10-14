@@ -1,0 +1,108 @@
+title: Ransomware File Encryption Behavior
+id: 8f2c3a1d-5e9b-4c8d-9f3a-2b6c5e9f1a55
+status: experimental
+description: |
+  Detects behaviors strongly associated with ransomware encryption
+  (ATT&CK T1486). Requires multiple signals to fire:
+
+    A) File creation with common ransomware extensions
+       (.locked, .encrypted, .crypt, .ryk, .conti, etc.)
+    B) Ransom-note-style filenames (README_DECRYPT, HOW_TO_RECOVER,
+       DECRYPT_INSTRUCTIONS, etc.)
+
+  Mass file encryption produces hundreds of Event ID 11 records in a
+  short window. This rule catches the individual events; a companion
+  aggregation rule (in SPL/EQL) handles the threshold.
+
+  NOTE: This rule is delivered unvalidated against the EVTX-ATTACK-
+  SAMPLES corpus, which contains no ransomware samples. It is shipped
+  as `experimental` for forward deployment; validation must occur on
+  live ransomware telemetry or an isolated lab exercise.
+
+references:
+  - https://attack.mitre.org/techniques/T1486/
+  - https://www.cisa.gov/stopransomware
+
+author: Cyberion Detection Engineering Lab
+date: 2026/10/15
+
+tags:
+  - attack.impact
+  - attack.t1486
+
+logsource:
+  product: windows
+  service: sysmon
+  definition: 'Requires Sysmon Event ID 11 (FileCreate)'
+
+detection:
+  selection_event:
+    EventID: 11
+
+  # Signal A: known ransomware extensions
+  selection_ransom_ext:
+    TargetFilename|endswith:
+      - '.locked'
+      - '.encrypted'
+      - '.crypto'
+      - '.crypt'
+      - '.enc'
+      - '.ryk'
+      - '.ryuk'
+      - '.conti'
+      - '.lockbit'
+      - '.revil'
+      - '.sodinokibi'
+      - '.maze'
+      - '.wcry'
+      - '.wncry'
+      - '.wncrypt'
+      - '.cerber'
+      - '.zepto'
+      - '.locky'
+      - '.phobos'
+      - '.djvu'
+
+  # Signal B: ransom-note-style filenames
+  selection_ransom_note:
+    TargetFilename|contains:
+      - 'HOW_TO_DECRYPT'
+      - 'HOW_TO_RECOVER'
+      - 'DECRYPT_INSTRUCTIONS'
+      - 'RECOVER_FILES'
+      - 'RESTORE_FILES'
+      - 'README_FOR_DECRYPT'
+      - '_readme.txt'
+      - '!README'
+      - '_HELP_INSTRUCTIONS'
+
+  # Exclusions
+  filter_known_encryptors:
+    Image|endswith:
+      - '\cipher.exe'         # Windows EFS encryption (legitimate)
+      - '\BitLockerDeviceEncryption.exe'
+      - '\1Password.exe'
+      - '\VeraCrypt.exe'
+      - '\AxCrypt.exe'
+      - '\7z.exe'             # legitimate archive creation
+      - '\7zG.exe'
+      - '\WinRAR.exe'
+      - '\WinZip32.exe'
+
+  condition: selection_event
+             and (selection_ransom_ext or selection_ransom_note)
+             and not filter_known_encryptors
+
+fields:
+  - Image
+  - TargetFilename
+  - User
+  - ProcessId
+
+falsepositives:
+  - Legitimate file encryption by security/backup tools
+  - Encrypted archive software with ransomware-like extensions
+  - Development tools writing `.enc` test files
+  - Password managers writing encrypted vaults
+
+level: critical
