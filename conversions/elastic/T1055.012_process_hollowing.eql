@@ -1,0 +1,5 @@
+# Auto-generated from T1055.012_process_hollowing.yml
+# Rule: Process Hollowing - Sysmon ProcessTampering
+
+EventID:25 AND (Type:("Image is replaced" OR "Image is locked for access" OR "Image is hijacked")) AND (NOT ((Image:(*\\MsMpEng.exe OR *\\MpCmdRun.exe OR *\\Sysmon.exe OR *\\Sysmon64.exe OR *\\MsSense.exe OR *\\SenseCncProxy.exe OR *\\MsSense.exe)) AND User:*AUTHORITY\\SYSTEM))
+

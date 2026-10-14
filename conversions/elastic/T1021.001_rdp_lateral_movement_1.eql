@@ -1,0 +1,5 @@
+# Auto-generated from T1021.001_rdp_lateral_movement.yml
+# Rule: RDP Tunneling - Loopback RDP Logon (High Confidence)
+
+(EventID:4624 AND LogonType:10 AND (IpAddress:(127.0.0.1 OR \:\:1))) AND (NOT TargetUserName:*$)
+

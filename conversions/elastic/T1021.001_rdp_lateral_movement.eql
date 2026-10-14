@@ -1,0 +1,5 @@
+# Auto-generated from T1021.001_rdp_lateral_movement.yml
+# Rule: RDP Lateral Movement - RemoteInteractive Logon (RDP)
+
+EventID:4624 AND LogonType:10 AND (NOT TargetUserName:*$) AND (NOT (TargetUserName:(SYSTEM OR "LOCAL SERVICE" OR "NETWORK SERVICE" OR "ANONYMOUS LOGON" OR DWM\-1 OR DWM\-2 OR UMFD\-0 OR UMFD\-1)))
+

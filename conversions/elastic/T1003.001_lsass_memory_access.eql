@@ -1,0 +1,5 @@
+# Auto-generated from T1003.001_lsass_memory_access.yml
+# Rule: Suspicious LSASS Process Access for Credential Dumping
+
+TargetImage:*\\lsass.exe AND (GrantedAccess:(*0x1010* OR *0x1410* OR *0x1438* OR *0x143a* OR *0x1439* OR *0x1f1fff* OR *0x1014c0* OR *0x12367b* OR *0x1452* OR *0x1fffff*)) AND (NOT (SourceImage:(*\\MsMpEng.exe OR *\\csrss.exe OR *\\lsass.exe OR *\\wininit.exe OR *\\services.exe OR *\\svchost.exe OR *\\taskmgr.exe OR *\\opera_autoupdate.exe OR *\\dllhost.exe OR *\\conhost.exe OR *\\winlogon.exe)))
+

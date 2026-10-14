@@ -1,0 +1,5 @@
+# Auto-generated from T1021.001_rdp_lateral_movement.yml
+# Rule: RDP Tunneling - Loopback RDP Logon (High Confidence)
+
+EventID=4624 LogonType="10" IpAddress IN ("127.0.0.1", "::1") NOT TargetUserName="*$" | table TargetUserName,TargetDomainName,IpAddress,IpPort,WorkstationName,AuthenticationPackageName
+

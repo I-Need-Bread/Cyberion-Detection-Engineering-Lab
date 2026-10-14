@@ -1,0 +1,5 @@
+# Auto-generated from T1486_ransomware_file_encryption.yml
+# Rule: Ransomware File Encryption Behavior
+
+EventID:11 AND ((TargetFilename:(*.locked OR *.encrypted OR *.crypto OR *.crypt OR *.enc OR *.ryk OR *.ryuk OR *.conti OR *.lockbit OR *.revil OR *.sodinokibi OR *.maze OR *.wcry OR *.wncry OR *.wncrypt OR *.cerber OR *.zepto OR *.locky OR *.phobos OR *.djvu)) OR (TargetFilename:(*HOW_TO_DECRYPT* OR *HOW_TO_RECOVER* OR *DECRYPT_INSTRUCTIONS* OR *RECOVER_FILES* OR *RESTORE_FILES* OR *README_FOR_DECRYPT* OR *_readme.txt* OR *\!README* OR *_HELP_INSTRUCTIONS*))) AND (NOT (Image:(*\\cipher.exe OR *\\BitLockerDeviceEncryption.exe OR *\\1Password.exe OR *\\VeraCrypt.exe OR *\\AxCrypt.exe OR *\\7z.exe OR *\\7zG.exe OR *\\WinRAR.exe OR *\\WinZip32.exe)))
+

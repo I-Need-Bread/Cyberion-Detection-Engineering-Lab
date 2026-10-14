@@ -1,0 +1,5 @@
+# Auto-generated from T1003.002_sam_registry_dump.yml
+# Rule: SAM Registry Hive Dump via reg save or VSS
+
+EventID:1 AND (((Image:*\\reg.exe AND (CommandLine:*save* AND CommandLine:*HKLM\\*)) AND (CommandLine:(*\\SAM* OR *\\Security* OR *\\SECURITY* OR *\\System* OR *\\SYSTEM*))) OR (CommandLine:*GLOBALROOT\\Device\\HarddiskVolumeShadowCopy* AND (CommandLine:*\\Windows\\System32\\config\\* AND CommandLine:*copy*)) OR (CommandLine:*vssadmin* AND CommandLine:*create\ shadow*)) AND (NOT (Image:(*\\wbengine.exe OR *\\vssvc.exe OR *\\BackupExec.exe OR *\\veeam.exe)))
+

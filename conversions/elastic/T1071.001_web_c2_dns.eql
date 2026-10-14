@@ -1,0 +1,5 @@
+# Auto-generated from T1071.001_web_c2_dns.yml
+# Rule: Suspicious DNS Query - Potential C2 (Long Labels / DGA / Bad TLD)
+
+EventID:22 AND (QueryName:/[a-zA-Z0-9]{30,}\./ OR (QueryName:(*.top OR *.xyz OR *.tk OR *.ml OR *.ga OR *.cf OR *.gq OR *.cc OR *.pw OR *.pw.))) AND (NOT (QueryName:(*.microsoft.com OR *.windows.com OR *.windowsupdate.com OR *.office.com OR *.office365.com OR *.sharepoint.com OR *.live.com OR *.outlook.com OR *.google.com OR *.googleapis.com OR *.gstatic.com OR *.amazonaws.com OR *.cloudfront.net OR *.github.com OR *.githubusercontent.com OR *.akamaihd.net OR *.akamaiedge.net OR *.digicert.com OR *.verisign.com)))
+

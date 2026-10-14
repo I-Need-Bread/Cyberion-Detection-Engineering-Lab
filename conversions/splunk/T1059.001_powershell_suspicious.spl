@@ -1,0 +1,5 @@
+# Auto-generated from T1059.001_powershell_suspicious.yml
+# Rule: Suspicious PowerShell Execution
+
+Image="*\\powershell.exe" OR OriginalFileName="PowerShell.EXE" CommandLine IN ("* -enc *", "* -EncodedCommand *", "* -ec *", "* -nop *", "* -NoProfile *", "* -w hidden *", "* -WindowStyle Hidden *", "* -ep bypass *", "* -ExecutionPolicy Bypass *") OR CommandLine IN ("*IEX*", "*Invoke-Expression*", "*DownloadString*", "*DownloadFile*", "*FromBase64String*", "*Invoke-WebRequest*", "*Net.WebClient*", "*Start-BitsTransfer*") OR CommandLine IN ("*http://*", "*https://*") | table CommandLine,ParentImage,User
+

@@ -1,0 +1,5 @@
+# Auto-generated from T1547.001_registry_run_keys.yml
+# Rule: Registry Run Key Persistence
+
+EventID=13 TargetObject IN ("*\\CurrentVersion\\Run\\*", "*\\CurrentVersion\\RunOnce\\*", "*\\CurrentVersion\\Policies\\Explorer\\Run\\*", "*\\CurrentVersion\\RunServices\\*", "*\\CurrentVersion\\RunServicesOnce\\*") NOT (Image IN ("*\\msiexec.exe", "*\\TrustedInstaller.exe", "*\\poqexec.exe", "*\\MsMpEng.exe", "*\\MpCmdRun.exe", "*\\setup.exe", "*\\setup64.exe", "*\\Sysmon.exe", "*\\Sysmon64.exe")) NOT (Details IN ("*SecurityHealth", "*OneDriveSetup.exe")) | table Image,TargetObject,Details,User,EventType
+

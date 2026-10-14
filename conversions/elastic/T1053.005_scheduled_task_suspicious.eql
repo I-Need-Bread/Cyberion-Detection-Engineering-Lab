@@ -1,0 +1,5 @@
+# Auto-generated from T1053.005_scheduled_task_suspicious.yml
+# Rule: Suspicious Scheduled Task Creation via schtasks.exe
+
+(Image:*\\schtasks.exe OR OriginalFileName:schtasks.exe) AND CommandLine:*\/create* AND ((CommandLine:(*\/sc\ onlogon* OR *\/sc\ onstart* OR *\/sc\ onidle* OR *\/ru\ SYSTEM* OR *\/ru\ \"NT\ AUTHORITY\\SYSTEM\"* OR *\/rl\ highest*)) OR (CommandLine:(*powershell* OR *pwsh* OR *cmd.exe\ \/c* OR *cmd\ \/c* OR *http\:\/\/* OR *https\:\/\/* OR *\ \-enc\ * OR *IEX* OR *DownloadString* OR *FromBase64String* OR *mshta* OR *rundll32* OR *regsvr32* OR *wscript* OR *cscript*)) OR (CommandLine:(*\\Microsoft\\Windows\\Update* OR *\\Microsoft\\Windows\\Google* OR *\\Microsoft\\Windows\\MicrosoftEdge* OR *\\Microsoft\\Windows\\WindowsUpdate*)))
+

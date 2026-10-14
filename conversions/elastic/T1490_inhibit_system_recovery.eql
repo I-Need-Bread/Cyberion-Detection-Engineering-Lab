@@ -1,0 +1,5 @@
+# Auto-generated from T1490_inhibit_system_recovery.yml
+# Rule: Inhibit System Recovery - Ransomware Precursor
+
+EventID:1 AND ((Image:*\\vssadmin.exe AND (CommandLine:*delete* AND CommandLine:*shadows*)) OR (CommandLine:*shadowcopy* AND CommandLine:*delete*) OR (Image:*\\bcdedit.exe AND (CommandLine:(*recoveryenabled\ no* OR *bootstatuspolicy\ ignoreallfailures*))) OR (Image:*\\wbadmin.exe AND (CommandLine:(*delete\ catalog* OR *delete\ systemstatebackup*))))
+

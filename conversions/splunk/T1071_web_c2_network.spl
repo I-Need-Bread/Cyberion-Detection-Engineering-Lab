@@ -1,0 +1,5 @@
+# Auto-generated from T1071_web_c2_network.yml
+# Rule: Suspicious Outbound Network Connection - Potential C2
+
+EventID=3 Initiated="true" DestinationPort IN ("4444", "4445", "4443", "1337", "31337", "9299", "8888", "9999") OR Image IN ("*\\mshta.exe", "*\\regsvr32.exe", "*\\certutil.exe", "*\\wscript.exe", "*\\cscript.exe", "*\\rundll32.exe", "*\\notepad.exe", "*\\nc.exe", "*\\plink.exe", "*\\m.exe") NOT (DestinationIp IN ("127.0.0.1", "::1", "0:0:0:0:0:0:0:1")) NOT (Image IN ("*\\svchost.exe", "*\\System", "*\\lsass.exe", "*\\services.exe")) | table Image,DestinationIp,DestinationPort,DestinationHostname,Protocol,SourceIp,User
+

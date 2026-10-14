@@ -1,0 +1,5 @@
+# Auto-generated from T1486_ransomware_file_encryption.yml
+# Rule: Ransomware File Encryption Behavior
+
+EventID=11 TargetFilename IN ("*.locked", "*.encrypted", "*.crypto", "*.crypt", "*.enc", "*.ryk", "*.ryuk", "*.conti", "*.lockbit", "*.revil", "*.sodinokibi", "*.maze", "*.wcry", "*.wncry", "*.wncrypt", "*.cerber", "*.zepto", "*.locky", "*.phobos", "*.djvu") OR TargetFilename IN ("*HOW_TO_DECRYPT*", "*HOW_TO_RECOVER*", "*DECRYPT_INSTRUCTIONS*", "*RECOVER_FILES*", "*RESTORE_FILES*", "*README_FOR_DECRYPT*", "*_readme.txt*", "*!README*", "*_HELP_INSTRUCTIONS*") NOT (Image IN ("*\\cipher.exe", "*\\BitLockerDeviceEncryption.exe", "*\\1Password.exe", "*\\VeraCrypt.exe", "*\\AxCrypt.exe", "*\\7z.exe", "*\\7zG.exe", "*\\WinRAR.exe", "*\\WinZip32.exe")) | table Image,TargetFilename,User,ProcessId
+

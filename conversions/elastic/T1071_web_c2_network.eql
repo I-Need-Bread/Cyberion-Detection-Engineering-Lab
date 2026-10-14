@@ -1,0 +1,5 @@
+# Auto-generated from T1071_web_c2_network.yml
+# Rule: Suspicious Outbound Network Connection - Potential C2
+
+(EventID:3 AND Initiated:true) AND ((DestinationPort:(4444 OR 4445 OR 4443 OR 1337 OR 31337 OR 9299 OR 8888 OR 9999)) OR (Image:(*\\mshta.exe OR *\\regsvr32.exe OR *\\certutil.exe OR *\\wscript.exe OR *\\cscript.exe OR *\\rundll32.exe OR *\\notepad.exe OR *\\nc.exe OR *\\plink.exe OR *\\m.exe))) AND (NOT (DestinationIp:(127.0.0.1 OR \:\:1 OR 0\:0\:0\:0\:0\:0\:0\:1))) AND (NOT (Image:(*\\svchost.exe OR *\\System OR *\\lsass.exe OR *\\services.exe)))
+

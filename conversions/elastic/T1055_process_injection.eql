@@ -1,0 +1,5 @@
+# Auto-generated from T1055_process_injection.yml
+# Rule: Process Injection - Suspicious CreateRemoteThread
+
+EventID:8 AND (TargetImage:*\\lsass.exe OR (SourceImage:(*\\winword.exe OR *\\excel.exe OR *\\powerpnt.exe OR *\\outlook.exe OR *\\w3wp.exe OR *\\powershell.exe OR *\\pwsh.exe OR *\\wscript.exe OR *\\cscript.exe OR *\\mshta.exe OR *\\rundll32.exe OR *\\regsvr32.exe OR *\\m.exe OR *\\keefarce.exe OR *\\rdrleakdiag.exe OR *.msg.exe)) OR (StartModule:(*\\BootstrapDLL.dll OR *\\BootstrapDLL64.dll)) OR (StartFunction:(DbgUiRemoteBreakin OR LoadManagedProject OR LoadLibraryW))) AND (NOT (SourceImage:(*\\svchost.exe OR *\\csrss.exe OR *\\smss.exe OR *\\wininit.exe OR *\\services.exe OR *\\lsass.exe OR *\\winlogon.exe OR *\\MsMpEng.exe OR *\\MpCmdRun.exe OR *\\Sysmon.exe OR *\\Sysmon64.exe OR *\\MsSense.exe OR *\\SenseCncProxy.exe)))
+

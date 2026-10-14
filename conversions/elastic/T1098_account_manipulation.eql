@@ -1,0 +1,5 @@
+# Auto-generated from T1098_account_manipulation.yml
+# Rule: Account Manipulation - New Account or Privileged Group Add
+
+(EventID:(4720 OR 4722 OR 4724 OR 4728 OR 4732 OR 4756)) AND (EventID:4720 OR ((EventID:(4728 OR 4732 OR 4756)) AND (TargetUserName:(Administrators OR "Domain Admins" OR "Enterprise Admins" OR "Schema Admins" OR "Account Operators" OR "Server Operators" OR "Backup Operators" OR "Remote Desktop Users"))) OR (EventID:4720 AND (TargetUserName:(*admin* OR *svc* OR *backup* OR *test* OR *temp* OR *help*))))
+

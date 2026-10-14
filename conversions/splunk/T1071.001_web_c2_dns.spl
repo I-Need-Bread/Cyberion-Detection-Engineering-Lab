@@ -1,0 +1,8 @@
+# Auto-generated from T1071.001_web_c2_dns.yml
+# Rule: Suspicious DNS Query - Potential C2 (Long Labels / DGA / Bad TLD)
+
+EventID=22
+| rex field=QueryName "(?<QueryNameMatch>[a-zA-Z0-9]{30,}\\.)"
+| eval QueryNameCondition=if(isnotnull(QueryNameMatch), "true", "false")
+| search QueryNameCondition="true" OR QueryName IN ("*.top", "*.xyz", "*.tk", "*.ml", "*.ga", "*.cf", "*.gq", "*.cc", "*.pw", "*.pw.") NOT (QueryName IN ("*.microsoft.com", "*.windows.com", "*.windowsupdate.com", "*.office.com", "*.office365.com", "*.sharepoint.com", "*.live.com", "*.outlook.com", "*.google.com", "*.googleapis.com", "*.gstatic.com", "*.amazonaws.com", "*.cloudfront.net", "*.github.com", "*.githubusercontent.com", "*.akamaihd.net", "*.akamaiedge.net", "*.digicert.com", "*.verisign.com")) | table QueryName,QueryResults,Image,User
+

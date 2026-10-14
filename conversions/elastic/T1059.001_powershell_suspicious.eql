@@ -1,0 +1,5 @@
+# Auto-generated from T1059.001_powershell_suspicious.yml
+# Rule: Suspicious PowerShell Execution
+
+(Image:*\\powershell.exe OR OriginalFileName:PowerShell.EXE) AND ((CommandLine:(*\ \-enc\ * OR *\ \-EncodedCommand\ * OR *\ \-ec\ * OR *\ \-nop\ * OR *\ \-NoProfile\ * OR *\ \-w\ hidden\ * OR *\ \-WindowStyle\ Hidden\ * OR *\ \-ep\ bypass\ * OR *\ \-ExecutionPolicy\ Bypass\ *)) OR (CommandLine:(*IEX* OR *Invoke\-Expression* OR *DownloadString* OR *DownloadFile* OR *FromBase64String* OR *Invoke\-WebRequest* OR *Net.WebClient* OR *Start\-BitsTransfer*)) OR (CommandLine:(*http\:\/\/* OR *https\:\/\/*)))
+

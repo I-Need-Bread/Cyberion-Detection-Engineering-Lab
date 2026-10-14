@@ -1,0 +1,5 @@
+# Auto-generated from T1055.012_process_hollowing_via_eid8.yml
+# Rule: Process Hollowing - CreateRemoteThread with Unbacked Start Address
+
+EventID=8 StartModule="" TargetImage IN ("*\\svchost.exe", "*\\notepad.exe", "*\\rundll32.exe", "*\\explorer.exe", "*\\dllhost.exe", "*\\RegAsm.exe", "*\\RegSvcs.exe", "*\\MSBuild.exe") NOT (SourceImage IN ("*\\svchost.exe", "*\\csrss.exe", "*\\smss.exe", "*\\wininit.exe", "*\\services.exe", "*\\lsass.exe", "*\\MsMpEng.exe", "*\\MpCmdRun.exe", "*\\Sysmon.exe", "*\\Sysmon64.exe", "*\\MsSense.exe")) | table SourceImage,TargetImage,StartAddress,StartModule,StartFunction,NewThreadId
+
