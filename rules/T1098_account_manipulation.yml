@@ -1,0 +1,88 @@
+title: Account Manipulation - New Account or Privileged Group Add
+id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+status: experimental
+description: |
+  Detects account manipulation events indicative of attacker persistence
+  (ATT&CK T1098):
+
+    - 4720: New user account created
+    - 4722: Account enabled (re-enable dormant backdoor)
+    - 4724: Password reset (backdoor password on existing account)
+    - 4728: Member added to global security group (e.g. Domain Admins)
+    - 4732: Member added to local group (e.g. Administrators)
+    - 4756: Member added to universal group (e.g. Enterprise Admins)
+
+  In a healthy enterprise these events are rare and tied to known
+  provisioning workflows. Anomalous ones — especially same-day combos of
+  4720 + 4732 by a non-admin — are high-signal.
+
+references:
+  - https://attack.mitre.org/techniques/T1098/
+  - https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4720
+
+author: Cyberion Detection Engineering Lab
+date: 2026/10/15
+
+tags:
+  - attack.persistence
+  - attack.t1098
+
+logsource:
+  product: windows
+  service: security
+
+detection:
+  selection_event:
+    EventID:
+      - 4720
+      - 4722
+      - 4724
+      - 4728
+      - 4732
+      - 4756
+
+  selection_any_new_account:
+    EventID: 4720
+
+  selection_privileged_group:
+    EventID:
+      - 4728
+      - 4732
+      - 4756
+    TargetUserName:
+      - 'Administrators'
+      - 'Domain Admins'
+      - 'Enterprise Admins'
+      - 'Schema Admins'
+      - 'Account Operators'
+      - 'Server Operators'
+      - 'Backup Operators'
+      - 'Remote Desktop Users'
+
+  selection_suspicious_account_name:
+    EventID: 4720
+    TargetUserName|contains:
+      - 'admin'
+      - 'svc'
+      - 'backup'
+      - 'test'
+      - 'temp'
+      - 'help'
+
+  condition: selection_event and (selection_any_new_account
+                                   or selection_privileged_group
+                                   or selection_suspicious_account_name)
+fields:
+  - EventID
+  - SubjectUserName
+  - TargetUserName
+  - MemberName
+  - MemberSid
+
+falsepositives:
+  - Legitimate onboarding of new employees
+  - IT helpdesk creating service accounts
+  - Scheduled provisioning by identity management systems
+  - Password reset workflows
+
+level: high
