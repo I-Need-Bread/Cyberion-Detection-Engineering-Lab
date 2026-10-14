@@ -1,0 +1,90 @@
+title: SAM Registry Hive Dump via reg save or VSS
+id: 5e8f3a2d-1c7b-4e9f-8d3a-2b6c5e9f1a77
+status: experimental
+description: |
+  Detects dumping of Windows credential-bearing registry hives (SAM,
+  SYSTEM, SECURITY) using the built-in `reg save` command, or via
+  Volume Shadow Copy extraction (VSS). This is a canonical
+  T1003.002 technique used to steal local account NTLM hashes and
+  LSA secrets when LSASS access (T1003.001) is unavailable or risky.
+
+  Two signals:
+    A) reg.exe save HKLM\SAM|SYSTEM|SECURITY <file>
+    B) vssadmin/diskshadow create shadow + copy from
+       \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopyN\...\config\<hive>
+
+references:
+  - https://attack.mitre.org/techniques/T1003/002/
+  - https://atomicredteam.io/credentials/T1003.002/
+
+author: Cyberion Detection Engineering Lab
+date: 2026/10/15
+
+tags:
+  - attack.credential_access
+  - attack.t1003.002
+
+logsource:
+  product: windows
+  service: sysmon
+  definition: 'Requires Sysmon Event ID 1 (ProcessCreate)'
+
+detection:
+  selection_event:
+    EventID: 1
+
+  # --- Signal A: reg save of credential hives ---
+  selection_reg_save:
+    Image|endswith: '\reg.exe'
+    CommandLine|contains|all:
+      - 'save'
+      - 'HKLM\'
+
+  selection_reg_save_hive:
+    CommandLine|contains:
+      - '\SAM'
+      - '\Security'
+      - '\SECURITY'
+      - '\System'
+      - '\SYSTEM'
+
+  # --- Signal B: VSS extraction of hive files ---
+  selection_vss_copy:
+    CommandLine|contains:
+      - 'GLOBALROOT\Device\HarddiskVolumeShadowCopy'
+    CommandLine|contains|all:
+      - '\Windows\System32\config\'
+      - 'copy'
+
+  selection_vss_create:
+    CommandLine|contains|all:
+      - 'vssadmin'
+      - 'create shadow'
+
+  # --- Exclusions ---
+  filter_legit_backup:
+    Image|endswith:
+      - '\wbengine.exe'          # Windows Backup
+      - '\vssvc.exe'             # Volume Shadow Copy Service
+      - '\BackupExec.exe'
+      - '\veeam.exe'
+
+  condition: selection_event
+             and ( (selection_reg_save and selection_reg_save_hive)
+                   or selection_vss_copy
+                   or selection_vss_create )
+             and not filter_legit_backup
+
+fields:
+  - Image
+  - CommandLine
+  - ParentImage
+  - User
+  - CurrentDirectory
+
+falsepositives:
+  - Backup software using reg save (rare, but seen with legacy tooling)
+  - Legitimate forensic imaging by security teams
+  - Some enterprise management tools
+
+level: high
