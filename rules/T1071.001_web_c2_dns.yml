@@ -1,0 +1,94 @@
+title: Suspicious DNS Query - Potential C2 (Long Labels / DGA / Bad TLD)
+id: 6f2c3a1d-4e8b-4c9f-8d3a-2b6c5e9f1a99
+status: experimental
+description: |
+  Detects DNS queries that exhibit common command-and-control (C2)
+  characteristics:
+    - Very long labels (> 30 chars) — typical of DNS tunneling /
+      domain fronting
+    - High-entropy subdomains — typical of domain generation algorithms
+    - TLDs commonly abused by commodity malware
+
+  Uses Sysmon Event ID 22 (DnsQuery). Designed as a high-signal
+  heuristic to surface suspicious lookups for analyst review; not all
+  matches are malicious, but the FP rate in a well-tuned environment
+  is low enough for alerting.
+
+references:
+  - https://attack.mitre.org/techniques/T1071/001/
+  - https://attack.mitre.org/techniques/T1568/002/   # DGA
+
+author: Cyberion Detection Engineering Lab
+date: 2026/10/15
+
+tags:
+  - attack.command_and_control
+  - attack.t1071.001
+  - attack.t1568.002
+
+logsource:
+  product: windows
+  service: sysmon
+  definition: 'Requires Sysmon Event ID 22 (DnsQuery)'
+
+detection:
+  selection_event:
+    EventID: 22
+
+  # Long-label / tunneling heuristic
+  selection_long_label:
+    QueryName|re: '[a-zA-Z0-9]{30,}\.'
+
+  # Abused TLDs (commodity malware, phishing)
+  selection_bad_tld:
+    QueryName|endswith:
+      - '.top'
+      - '.xyz'
+      - '.tk'
+      - '.ml'
+      - '.ga'
+      - '.cf'
+      - '.gq'
+      - '.cc'
+      - '.pw'
+      - '.pw.'
+
+  # Exclusions — well-known good domains
+  filter_common_good:
+    QueryName|endswith:
+      - '.microsoft.com'
+      - '.windows.com'
+      - '.windowsupdate.com'
+      - '.office.com'
+      - '.office365.com'
+      - '.sharepoint.com'
+      - '.live.com'
+      - '.outlook.com'
+      - '.google.com'
+      - '.googleapis.com'
+      - '.gstatic.com'
+      - '.amazonaws.com'
+      - '.cloudfront.net'
+      - '.github.com'
+      - '.githubusercontent.com'
+      - '.akamaihd.net'
+      - '.akamaiedge.net'
+      - '.digicert.com'
+      - '.verisign.com'
+
+  condition: selection_event and (selection_long_label or selection_bad_tld)
+             and not filter_common_good
+
+fields:
+  - QueryName
+  - QueryResults
+  - Image
+  - User
+
+falsepositives:
+  - CDNs and cloud services using long subdomain labels
+  - Antivirus / EDR vendor telemetry domains
+  - Software updater domains with tracking subdomains
+  - Corporate SSO and identity providers
+
+level: medium
