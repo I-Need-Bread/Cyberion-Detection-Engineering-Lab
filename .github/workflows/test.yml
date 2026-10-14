@@ -22,7 +22,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
 
       - name: Install dependencies
         run: |
@@ -40,7 +39,7 @@ jobs:
           Write-Host "Found $($rules.Count) Sigma rules"
           if ($rules.Count -lt 1) { throw "No Sigma rules found" }
 
-            - name: Validate Sigma YAML syntax
+      - name: Validate Sigma YAML syntax
         run: python scripts/validate_sigma.py
 
       - name: Run all rule test scripts
