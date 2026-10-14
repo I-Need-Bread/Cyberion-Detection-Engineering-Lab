@@ -40,24 +40,8 @@ jobs:
           Write-Host "Found $($rules.Count) Sigma rules"
           if ($rules.Count -lt 1) { throw "No Sigma rules found" }
 
-      - name: Validate Sigma YAML syntax
-        run: |
-          python -c "
-          import yaml, glob, sys
-          files = glob.glob('rules/*.yml')
-          errors = 0
-          for f in files:
-              try:
-                  with open(f, encoding='utf-8') as fh:
-                      docs = list(yaml.safe_load_all(fh))
-                  for doc in docs:
-                      if doc and 'title' in doc:
-                          print(f'OK   {f} :: {doc.get(\"title\")}')
-              except Exception as e:
-                  print(f'FAIL {f} :: {e}')
-                  errors += 1
-          sys.exit(1 if errors else 0)
-          "
+            - name: Validate Sigma YAML syntax
+        run: python scripts/validate_sigma.py
 
       - name: Run all rule test scripts
         run: |
