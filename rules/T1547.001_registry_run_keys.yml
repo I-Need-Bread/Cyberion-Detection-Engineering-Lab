@@ -1,0 +1,75 @@
+title: Registry Run Key Persistence
+id: 9d2e4a1c-5f8b-4e7d-9a2c-3b6f1e8c7d44
+status: experimental
+description: |
+  Detects writes to Windows Registry Run / RunOnce keys, a very common
+  persistence mechanism (ATT&CK T1547.001). Attackers add entries here
+  to survive reboots and user logons. Covers HKLM and HKCU scopes, both
+  Run and RunOnce variants, plus common parent-key abuse patterns.
+
+  Excludes writes by legitimate installers and known-good signing tools.
+
+references:
+  - https://attack.mitre.org/techniques/T1547/001/
+  - https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+  - https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid=90013
+
+author: Cyberion Detection Engineering Lab
+date: 2026/10/15
+
+tags:
+  - attack.persistence
+  - attack.t1547.001
+
+logsource:
+  product: windows
+  service: sysmon
+  definition: 'Requires Sysmon Event ID 13 (RegistryValueSet)'
+
+detection:
+  selection_event:
+    EventID: 13
+
+  selection_run_keys:
+    TargetObject|contains:
+      - '\CurrentVersion\Run\'
+      - '\CurrentVersion\RunOnce\'
+      - '\CurrentVersion\Policies\Explorer\Run\'
+      - '\CurrentVersion\RunServices\'
+      - '\CurrentVersion\RunServicesOnce\'
+
+  filter_legit_sources:
+    Image|endswith:
+      - '\msiexec.exe'
+      - '\TrustedInstaller.exe'
+      - '\poqexec.exe'
+      - '\MsMpEng.exe'
+      - '\MpCmdRun.exe'
+      - '\setup.exe'
+      - '\setup64.exe'
+      - '\Sysmon.exe'
+      - '\Sysmon64.exe'
+
+  filter_known_values:
+    Details|endswith:
+      - 'SecurityHealth'
+      - 'OneDriveSetup.exe'
+
+  condition: selection_event and selection_run_keys
+             and not filter_legit_sources
+             and not filter_known_values
+
+fields:
+  - Image
+  - TargetObject
+  - Details
+  - User
+  - EventType
+
+falsepositives:
+  - Legitimate software installation (installers write Run keys by design)
+  - Windows updates and setup
+  - Corporate software deployment tools
+  - Software updaters registering themselves
+
+level: medium
