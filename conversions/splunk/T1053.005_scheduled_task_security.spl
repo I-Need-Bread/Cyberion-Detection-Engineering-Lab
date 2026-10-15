@@ -1,0 +1,5 @@
+# Auto-generated from T1053.005_scheduled_task_security.yml
+# Rule: Scheduled Task Created - Suspicious Command Execution
+
+EventID=4698 TaskContent IN ("*powershell*", "*pwsh*", "*cmd.exe*", "*cmd /c*", "*cmd /k*", "*-enc*", "*-EncodedCommand*", "*FromBase64String*", "*IEX*", "*Invoke-Expression*", "*DownloadString*", "*DownloadFile*", "*curl *", "*wget *", "*certutil*", "*bitsadmin*", "*mshta*", "*regsvr32*", "*rundll32*", "*wscript*", "*cscript*", "*\\AppData\\*", "*\\Temp\\*", "*\\ProgramData\\*", "*\\Public\\*", "*tasklist*", "*whoami*", "*net user*", "*net group*", "*systeminfo*") NOT (TaskName IN ("\\Microsoft\\Windows\\*", "\\Microsoft\\Office\\*", "\\Microsoft\\Windows Defender\\*")) NOT SubjectUserName="*$" | table SubjectUserName,SubjectDomainName,TaskName,ClientProcessId
+

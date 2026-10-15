@@ -1,0 +1,5 @@
+# Auto-generated from T1053.005_scheduled_task_security.yml
+# Rule: Scheduled Task Created - Suspicious Command Execution
+
+EventID:4698 AND (TaskContent:(*powershell* OR *pwsh* OR *cmd.exe* OR *cmd\ \/c* OR *cmd\ \/k* OR *\-enc* OR *\-EncodedCommand* OR *FromBase64String* OR *IEX* OR *Invoke\-Expression* OR *DownloadString* OR *DownloadFile* OR *curl\ * OR *wget\ * OR *certutil* OR *bitsadmin* OR *mshta* OR *regsvr32* OR *rundll32* OR *wscript* OR *cscript* OR *\\AppData\\* OR *\\Temp\\* OR *\\ProgramData\\* OR *\\Public\\* OR *tasklist* OR *whoami* OR *net\ user* OR *net\ group* OR *systeminfo*)) AND (NOT (TaskName:(\\Microsoft\\Windows\\* OR \\Microsoft\\Office\\* OR \\Microsoft\\Windows\ Defender\\*))) AND (NOT SubjectUserName:*$)
+

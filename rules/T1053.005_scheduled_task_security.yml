@@ -1,0 +1,93 @@
+title: Scheduled Task Created - Suspicious Command Execution
+id: 3b4c5d6e-7f8a-9b0c-1d2e-3f4a5b6c7d8e
+status: experimental
+description: |
+  Detects creation of Windows scheduled tasks (Security Event ID 4698)
+  whose registered command or arguments contain suspicious patterns
+  commonly abused for persistence, C2, or payload execution.
+
+  Complements Sysmon-based T1053.005 detection (T1053.005_scheduled_task_suspicious.yml)
+  by using the Security log — a completely independent telemetry path.
+  Defeating both requires disabling or bypassing two distinct logging systems.
+
+references:
+  - https://attack.mitre.org/techniques/T1053/005/
+  - https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4698
+
+author: Cyberion Detection Engineering Lab
+date: 2026/10/15
+
+tags:
+  - attack.persistence
+  - attack.privilege_escalation
+  - attack.execution
+  - attack.t1053.005
+
+logsource:
+  product: windows
+  service: security
+  definition: 'Requires Security Event ID 4698 (Scheduled Task Created)'
+
+detection:
+  selection_event:
+    EventID: 4698
+
+  selection_suspicious_command:
+    TaskContent|contains:
+      - 'powershell'
+      - 'pwsh'
+      - 'cmd.exe'
+      - 'cmd /c'
+      - 'cmd /k'
+      - '-enc'
+      - '-EncodedCommand'
+      - 'FromBase64String'
+      - 'IEX'
+      - 'Invoke-Expression'
+      - 'DownloadString'
+      - 'DownloadFile'
+      - 'curl '
+      - 'wget '
+      - 'certutil'
+      - 'bitsadmin'
+      - 'mshta'
+      - 'regsvr32'
+      - 'rundll32'
+      - 'wscript'
+      - 'cscript'
+      - '\AppData\'
+      - '\Temp\'
+      - '\ProgramData\'
+      - '\Public\'
+      - 'tasklist'
+      - 'whoami'
+      - 'net user'
+      - 'net group'
+      - 'systeminfo'
+
+  filter_windows_tasks:
+    TaskName|startswith:
+      - '\Microsoft\Windows\'
+      - '\Microsoft\Office\'
+      - '\Microsoft\Windows Defender\'
+
+  filter_legit_subjects:
+    SubjectUserName|endswith: '$'
+
+  condition: selection_event and selection_suspicious_command
+             and not filter_windows_tasks
+             and not filter_legit_subjects
+
+fields:
+  - SubjectUserName
+  - SubjectDomainName
+  - TaskName
+  - ClientProcessId
+
+falsepositives:
+  - Legitimate software installers creating scheduled tasks with
+    powershell or cmd entries (some do)
+  - Management/backup software with temporary task registration
+  - Corporate provisioning systems
+
+level: high
