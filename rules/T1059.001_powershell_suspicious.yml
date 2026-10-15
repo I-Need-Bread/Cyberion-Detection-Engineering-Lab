@@ -13,8 +13,9 @@ tags:
     - attack.execution
     - attack.t1059.001
 logsource:
-    category: process_creation
-    product: windows
+  product: windows
+  service: sysmon
+  definition: 'Requires Sysmon Event ID 1 (ProcessCreate)'
 detection:
     selection_img:
         - Image|endswith: '\powershell.exe'

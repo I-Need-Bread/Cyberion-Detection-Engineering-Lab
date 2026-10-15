@@ -14,8 +14,9 @@ tags:
     - attack.privilege_escalation
     - attack.t1053.005
 logsource:
-    category: process_creation
-    product: windows
+  product: windows
+  service: sysmon
+  definition: 'Requires Sysmon Event ID 1 (ProcessCreate)'
 detection:
     selection_img:
         - Image|endswith: '\schtasks.exe'

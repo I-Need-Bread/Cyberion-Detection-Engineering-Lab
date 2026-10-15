@@ -28,6 +28,11 @@ def extract_meta(doc):
     }
 
 
+def normalize_tactic(t):
+    """Strip 'attack.' prefix and normalize separators."""
+    return t.replace("attack.", "").replace("-", "_")
+
+
 def main():
     files = sorted(glob.glob(os.path.join(BASE, "rules", "*.yml")))
     print("# ATT&CK Coverage Matrix\n")
@@ -37,7 +42,9 @@ def main():
     print("|---|------|-------------------|--------|------------|-------|--------|")
 
     all_techniques = set()
-    all_tactics = set()
+    all_tactics_raw = set()
+    all_tactics_normalized = set()
+
     for i, path in enumerate(files, 1):
         with open(path, encoding="utf-8") as fh:
             docs = list(yaml.safe_load_all(fh))
@@ -46,25 +53,31 @@ def main():
                 continue
             m = extract_meta(doc)
             tech = ", ".join(m["techniques"]) or "—"
-            tact = ", ".join(t.replace("attack.", "") for t in m["tactics"]) or "—"
+
+            # Normalize each tactic
+            normalized = [normalize_tactic(t) for t in m["tactics"]]
+            tact = ", ".join(normalized) or "—"
+
             print(f"| {i} | {m['title']} | {tech} | {tact} | "
                   f"`{m['logsource']}` | {m['level']} | {m['status']} |")
+
             all_techniques.update(m["techniques"])
-            all_tactics.update(m["tactics"])
+            all_tactics_raw.update(m["tactics"])
+            all_tactics_normalized.update(normalized)
 
     print()
     print("## Summary\n")
     print(f"- **Total rules**: {len(files)}")
     print(f"- **Unique techniques**: {len(all_techniques)}")
-    print(f"- **Unique tactics**: {len(all_tactics)}")
+    print(f"- **Unique tactics**: {len(all_tactics_normalized)}")
     print()
     print("### Techniques covered\n")
     for t in sorted(all_techniques):
         print(f"- {t}")
     print()
     print("### Tactics covered\n")
-    for t in sorted(all_tactics):
-        print(f"- {t.replace('attack.', '')}")
+    for t in sorted(all_tactics_normalized):
+        print(f"- {t}")
 
 
 if __name__ == "__main__":

@@ -12,8 +12,9 @@ tags:
   - attack.credential-access
   - attack.t1003.001
 logsource:
-  category: process_access
   product: windows
+  service: sysmon
+  definition: 'Requires Sysmon Event ID 10 (ProcessAccess)'
 detection:
   selection_target:
     TargetImage|endswith: '\lsass.exe'
